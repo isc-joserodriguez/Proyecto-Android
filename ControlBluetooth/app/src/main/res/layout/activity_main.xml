@@ -5,128 +5,233 @@
     android:layout_height="match_parent"
     tools:context="com.example.shepe.controlbluetooth.MainActivity">
 
-
-    <LinearLayout
-        android:orientation="vertical"
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/Contenedor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <TextView
+            <LinearLayout
+                android:id="@+id/Botones"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Dato:"
-                android:textStyle="bold" />
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/dato"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.1"
-                android:ems="10"
-                android:inputType="textPersonName"
-                android:text="Name" />
+                <Button
+                    android:id="@+id/btnBlue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Panel Blue" />
+
+                <Button
+                    android:id="@+id/btnGraphs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Panel Graph" />
+
+                <Button
+                    android:id="@+id/btnOnOff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Encender" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/PanelBluetooth"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="Temperatura:"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/temperatura"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.1"
+                        android:ems="10"
+                        android:inputType="number"
+                        android:text="0" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="Humedad:"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/humedad"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.1"
+                        android:ems="10"
+                        android:inputType="number"
+                        android:text="0" />
+
+                </LinearLayout>
+
+
+                <Button
+                    android:id="@+id/enviar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Enviar datos" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="RX:"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/readBuffer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textMultiLine" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="Estado:"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/bluetoothStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:layout_alignTop="@+id/checkboxLED1"
+                        android:layout_centerHorizontal="true"
+                        android:layout_weight="0.9"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="-Estado BT-" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/scan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/off"
+                    android:text="Encender BT" />
+
+                <Button
+                    android:id="@+id/off"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/scan"
+                    android:layout_toEndOf="@+id/PairedBtn"
+                    android:layout_toRightOf="@+id/PairedBtn"
+                    android:text="Apagar BT" />
+
+                <Button
+                    android:id="@+id/PairedBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/scan"
+                    android:layout_toStartOf="@+id/discover"
+                    android:text="Mostrar vinculados" />
+
+                <Button
+                    android:id="@+id/discover"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/off"
+                    android:layout_toEndOf="@+id/checkboxLED1"
+                    android:layout_toRightOf="@+id/checkboxLED1"
+                    android:text="Nuevos dispositivos" />
+
+                <ListView
+                    android:id="@+id/devicesListView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/PairedBtn"
+                    android:layout_alignEnd="@+id/off"
+                    android:layout_alignRight="@+id/off"
+                    android:choiceMode="singleChoice" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/PanelGraphs"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <com.jjoe64.graphview.GraphView
+                        android:id="@+id/graph1"
+                        android:layout_width="300dp"
+                        android:layout_height="250dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <com.jjoe64.graphview.GraphView
+                        android:id="@+id/graph2"
+                        android:layout_width="300dp"
+                        android:layout_height="250dp" />
+
+                </LinearLayout>
+
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/enviar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enviar datos" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="RX:"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/readBuffer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textMultiLine" />
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.1"
-                android:text="Status:"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textStyle="bold" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.9"
-
-                android:text="-Bluetooth Status-"
-                android:id="@+id/bluetoothStatus"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_centerHorizontal="true"
-                android:layout_alignTop="@+id/checkboxLED1" />
-        </LinearLayout>
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Bluetooth ON"
-            android:id="@+id/scan"
-            android:layout_centerVertical="true"
-            android:layout_toStartOf="@+id/off" />
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Bluetooth OFF"
-            android:id="@+id/off"
-            android:layout_alignBottom="@+id/scan"
-            android:layout_toEndOf="@+id/PairedBtn"
-            android:layout_toRightOf="@+id/PairedBtn" />
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Show paired Devices"
-            android:id="@+id/PairedBtn"
-            android:layout_below="@+id/scan"
-            android:layout_toStartOf="@+id/discover" />
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Discover New Devices"
-            android:id="@+id/discover"
-            android:layout_below="@+id/off"
-            android:layout_toRightOf="@+id/checkboxLED1"
-            android:layout_toEndOf="@+id/checkboxLED1" />
-
-        <ListView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/devicesListView"
-            android:choiceMode="singleChoice"
-            android:layout_below="@+id/PairedBtn"
-            android:layout_alignRight="@+id/off"
-            android:layout_alignEnd="@+id/off" />
-
-    </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
 
 </RelativeLayout>

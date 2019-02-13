@@ -17,14 +17,21 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,8 +39,20 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     // GUI Components
+    private Handler manGraphs;
+    private Runnable mTimer1;
+    private LineGraphSeries<DataPoint> mSeries1;
+    private Runnable mTimer2;
+    private LineGraphSeries<DataPoint> mSeries2;
+    private double graph2LastXValue1;
+    private double graph2LastXValue2;
+
+
     private TextView mBluetoothStatus;
     private EditText mReadBuffer;
+    private Button btnBlue;
+    private Button btnOnOff;
+    private Button btnGraphs;
     private Button mScanBtn;
     private Button mOffBtn;
     private Button mListPairedDevicesBtn;
@@ -43,7 +62,15 @@ public class MainActivity extends AppCompatActivity {
     private Set<BluetoothDevice> mPairedDevices;
     private ArrayAdapter<String> mBTArrayAdapter;
     private ListView mDevicesListView;
-    private EditText datos;
+    private EditText temperatura;
+    private EditText humedad;
+    private LinearLayout panelBluetooth;
+    private LinearLayout panelGraphs;
+    private LinearLayout contenedor;
+    private LinearLayout botones;
+    private Boolean encendido;
+    private double s1;
+    private double s2;
 
 
     private Handler mHandler; // Our main handler that will receive callback notifications
@@ -70,16 +97,56 @@ public class MainActivity extends AppCompatActivity {
         mOffBtn = findViewById(R.id.off);
         mDiscoverBtn = findViewById(R.id.discover);
         mListPairedDevicesBtn = findViewById(R.id.PairedBtn);
-        enviar=findViewById(R.id.enviar);
-        datos=findViewById(R.id.dato);
+        btnBlue = findViewById(R.id.btnBlue);
+        btnOnOff = findViewById(R.id.btnOnOff);
+        btnGraphs = findViewById(R.id.btnGraphs);
+        enviar = findViewById(R.id.enviar);
+        temperatura = findViewById(R.id.temperatura);
+        humedad= findViewById(R.id.humedad);
+        panelBluetooth=findViewById(R.id.PanelBluetooth);
+        panelGraphs=findViewById(R.id.PanelGraphs);
+        contenedor=findViewById(R.id.Contenedor);
+        botones=findViewById(R.id.Botones);
+        panelBluetooth.setVisibility(View.VISIBLE);
+        panelBluetooth.setVisibility(View.INVISIBLE);
+        panelGraphs.setVisibility(View.INVISIBLE);
+        manGraphs = new Handler();
+        graph2LastXValue1=1;
+        graph2LastXValue2=1;
+        s1=0.0;
+        s2=0.0;
+
+        GraphView graph1 = findViewById(R.id.graph1);
+        mSeries1 = new LineGraphSeries<>();
+        graph1.addSeries(mSeries1);
+        graph1.getViewport().setXAxisBoundsManual(true);
+        graph1.getViewport().setMinX(0);
+        graph1.getViewport().setMaxX(graph2LastXValue1+10);
+        graph1.getViewport().setMinY(0);
+        graph1.getViewport().setMaxY(s1+10.0);
+        graph1.setTitle("Temperatura");
 
 
-        mBTArrayAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1);
+
+        GraphView graph2 = findViewById(R.id.graph2);
+        mSeries2 = new LineGraphSeries<>();
+        graph2.addSeries(mSeries2);
+        graph2.getViewport().setXAxisBoundsManual(true);
+        graph2.getViewport().setMinX(0);
+        graph2.getViewport().setMaxX(graph2LastXValue2+10);
+        graph2.setTitle("Humedad");
+
+
+        encendido=false;
+
+
+        mBTArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         mBTAdapter = BluetoothAdapter.getDefaultAdapter(); // get a handle on the bluetooth radio
 
-        mDevicesListView = (ListView)findViewById(R.id.devicesListView);
+        mDevicesListView = findViewById(R.id.devicesListView);
         mDevicesListView.setAdapter(mBTArrayAdapter); // assign model to view
         mDevicesListView.setOnItemClickListener(mDeviceClickListener);
+
 
 
 
@@ -93,30 +160,88 @@ public class MainActivity extends AppCompatActivity {
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
-                    mReadBuffer.setText(readMessage);
+
+
+
+                    s1=Double.parseDouble(readMessage.split("-")[0].split(",")[0])/10;
+                    s2=Double.parseDouble(readMessage.split("-")[0].split(",")[1])/10;
+                    mReadBuffer.setText("Temperatura: "+s1+" Humedad: "+s2);
+
                 }
 
                 if(msg.what == CONNECTING_STATUS){
                     if(msg.arg1 == 1)
-                        mBluetoothStatus.setText("Connected to Device: " + (String)(msg.obj));
+                        mBluetoothStatus.setText("Conectado a: " + (String)(msg.obj));
                     else
-                        mBluetoothStatus.setText("Connection Failed");
+                        mBluetoothStatus.setText("Falló la conexión");
                 }
             }
         };
 
         if (mBTArrayAdapter == null) {
             // Device does not support Bluetooth
-            mBluetoothStatus.setText("Status: Bluetooth not found");
-            Toast.makeText(getApplicationContext(),"Bluetooth device not found!",Toast.LENGTH_SHORT).show();
+            mBluetoothStatus.setText("Estado: Bluetooth no encontrado");
+            Toast.makeText(getApplicationContext(),"Dispositivo bluetooth no encontrado!",Toast.LENGTH_SHORT).show();
         }
         else {
             enviar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String cad=datos.getText().toString();
-                    if(mConnectedThread != null && !cad.equals("")) //First check to make sure thread created
-                        mConnectedThread.write(cad);
+                    if(!(temperatura.getText().toString().isEmpty() && humedad.getText().toString().isEmpty())){
+                        String cad=encendido+","+temperatura.getText().toString()+","+humedad.getText().toString();
+                        if(mConnectedThread != null && !cad.equals("")) //First check to make sure thread created
+                            mConnectedThread.write(cad);
+                    }else{
+                        Toast.makeText(MainActivity.this,"Ingresa una temperatura y una humedad",Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            btnOnOff.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(!encendido&&mConnectedThread != null){
+                        btnOnOff.setText("Apagar");
+                        mConnectedThread.write("true,0,0");
+                        encendido=!encendido;
+                        mTimer1 = new Runnable() {
+                            @Override
+                            public void run() {
+                                graph2LastXValue1 += 1;
+                                mSeries1.appendData(new DataPoint(graph2LastXValue1,s1), true, (int)graph2LastXValue1+10);
+                                mHandler.postDelayed(this, 1000);
+                            }
+                        };
+                        manGraphs.postDelayed(mTimer1, 1000);
+
+                        mTimer2 = new Runnable() {
+                            @Override
+                            public void run() {
+                                graph2LastXValue2 += 1;
+                                mSeries2.appendData(new DataPoint(graph2LastXValue2, s2), true, (int)graph2LastXValue2+10);
+                                mHandler.postDelayed(this, 1000);
+                            }
+                        };
+                        manGraphs.postDelayed(mTimer2, 1000);
+
+
+                    }else{
+                        recreate();
+                        if(mConnectedThread != null) mConnectedThread.write("false,0,0");
+                    }
+
+                }
+
+            });
+            btnGraphs.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    panelGraphs.setVisibility(View.VISIBLE);
+                    panelBluetooth.setVisibility(View.INVISIBLE);
+
+                    contenedor.removeAllViews();
+                    contenedor.addView(botones,0);
+                    contenedor.addView(panelGraphs,1);
+                    contenedor.addView(panelBluetooth,2);
                 }
             });
 
@@ -149,18 +274,30 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        btnBlue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                panelBluetooth.setVisibility(View.VISIBLE);
+                panelGraphs.setVisibility(View.INVISIBLE);
+                contenedor.removeAllViews();
+                contenedor.addView(botones,0);
+                contenedor.addView(panelBluetooth,1);
+                contenedor.addView(panelGraphs,2);
+            }
+        });
     }
 
     private void bluetoothOn(View view){
         if (!mBTAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            mBluetoothStatus.setText("Bluetooth enabled");
-            Toast.makeText(getApplicationContext(),"Bluetooth turned on",Toast.LENGTH_SHORT).show();
+            mBluetoothStatus.setText("Bluetooth Activado");
+            Toast.makeText(getApplicationContext(),"Bluetooth encendido",Toast.LENGTH_SHORT).show();
 
         }
         else{
-            Toast.makeText(getApplicationContext(),"Bluetooth is already on", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Bluetooth ya esta encendido", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -173,34 +310,34 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 // The user picked a contact.
                 // The Intent's data Uri identifies which contact was selected.
-                mBluetoothStatus.setText("Enabled");
+                mBluetoothStatus.setText("Activado");
             }
             else
-                mBluetoothStatus.setText("Disabled");
+                mBluetoothStatus.setText("Desactivado");
         }
     }
 
     private void bluetoothOff(View view){
         mBTAdapter.disable(); // turn off
-        mBluetoothStatus.setText("Bluetooth disabled");
-        Toast.makeText(getApplicationContext(),"Bluetooth turned Off", Toast.LENGTH_SHORT).show();
+        mBluetoothStatus.setText("Bluetooth Desactivado");
+        Toast.makeText(getApplicationContext(),"Bluetooth apagado", Toast.LENGTH_SHORT).show();
     }
 
     private void discover(View view){
         // Check if the device is already discovering
         if(mBTAdapter.isDiscovering()){
             mBTAdapter.cancelDiscovery();
-            Toast.makeText(getApplicationContext(),"Discovery stopped",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Se detuvo el escaneo",Toast.LENGTH_SHORT).show();
         }
         else{
             if(mBTAdapter.isEnabled()) {
                 mBTArrayAdapter.clear(); // clear items
                 mBTAdapter.startDiscovery();
-                Toast.makeText(getApplicationContext(), "Discovery started", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Se inició el escaneo", Toast.LENGTH_SHORT).show();
                 registerReceiver(blReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
             }
             else{
-                Toast.makeText(getApplicationContext(), "Bluetooth not on", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Bluetooth no está encendido", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -225,21 +362,21 @@ public class MainActivity extends AppCompatActivity {
             for (BluetoothDevice device : mPairedDevices)
                 mBTArrayAdapter.add(device.getName() + "\n" + device.getAddress());
 
-            Toast.makeText(getApplicationContext(), "Show Paired Devices", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Mostrar vinculados", Toast.LENGTH_SHORT).show();
         }
         else
-            Toast.makeText(getApplicationContext(), "Bluetooth not on", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Bluetooth no encendido", Toast.LENGTH_SHORT).show();
     }
 
     private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
 
             if(!mBTAdapter.isEnabled()) {
-                Toast.makeText(getBaseContext(), "Bluetooth not on", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), "Bluetooth no encendido", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            mBluetoothStatus.setText("Connecting...");
+            mBluetoothStatus.setText("Conectando...");
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             final String address = info.substring(info.length() - 17);
@@ -257,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
                         mBTSocket = createBluetoothSocket(device);
                     } catch (IOException e) {
                         fail = true;
-                        Toast.makeText(getBaseContext(), "Socket creation failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "Falló la creación del socket", Toast.LENGTH_SHORT).show();
                     }
                     // Establish the Bluetooth socket connection.
                     try {
@@ -270,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
                                     .sendToTarget();
                         } catch (IOException e2) {
                             //insert code to deal with this
-                            Toast.makeText(getBaseContext(), "Socket creation failed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getBaseContext(), "Falló la creación del socket", Toast.LENGTH_SHORT).show();
                         }
                     }
                     if(fail == false) {
@@ -339,13 +476,6 @@ public class MainActivity extends AppCompatActivity {
             byte[] bytes = input.getBytes();           //converts entered String into bytes
             try {
                 mmOutStream.write(bytes);
-            } catch (IOException e) { }
-        }
-
-        /* Call this from the main activity to shutdown the connection */
-        public void cancel() {
-            try {
-                mmSocket.close();
             } catch (IOException e) { }
         }
     }
